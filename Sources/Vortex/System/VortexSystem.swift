@@ -14,7 +14,8 @@ public class VortexSystem: Codable, Equatable, Hashable {
         case tags, secondarySystems, spawnOccasion, position, shape, birthRate, emissionLimit, emissionDuration
         case idleDuration, burstCount, burstCountVariation, lifespan, lifespanVariation, speed, speedVariation, angle
         case angleRange, acceleration, attractionCenter, attractionStrength, dampingFactor, angularSpeed
-        case angularSpeedVariation, colors, size, sizeVariation, sizeMultiplierAtDeath, stretchFactor
+        case angularSpeedVariation, colors, size, sizeVariation, sizeMultiplierAtDeath, stretchFactor, endCenter
+        case endStartTime
     }
 
     /// A random identifier that lets us create Equatable and Hashable conformances easily.
@@ -159,6 +160,13 @@ public class VortexSystem: Codable, Equatable, Hashable {
     /// cause more stretching.
     public var stretchFactor: Double
 
+    /// A specific point particles should move towards, based
+    /// on `endStartTime`. A `nil` value here means no end position.
+    public var endCenter: SIMD2<Double>?
+
+    /// When particles should start to transition to the `endCenter`. Relative to `lifespan`.
+    public var endStartTime: TimeInterval?
+
     /// Creates a new particle system. Most values here have sensible defaults, but you do need
     /// to provide a list of tags matching whatever you're using with `VortexView`.
     /// - Parameters:
@@ -220,6 +228,9 @@ public class VortexSystem: Codable, Equatable, Hashable {
     ///     particle will finish at size 0.25. Defaults to 1.
     ///   - stretchFactor: How much to stretch this particle's image based on its movement
     ///     speed. Larger values cause more stretching. Defaults to 1 (no stretch).
+    ///   - endCenter: A specific point particles should move towards, based
+    ///     on `endStartTime`. A `nil` value here means no end position.
+    ///   - endStartTime When particles should start to transition to the `endCenter`. Relative to `lifespan`.
     public init(
         tags: [String],
         secondarySystems: [VortexSystem] = [],
@@ -248,7 +259,9 @@ public class VortexSystem: Codable, Equatable, Hashable {
         size: Double = 1,
         sizeVariation: Double = 0,
         sizeMultiplierAtDeath: Double = 1,
-        stretchFactor: Double = 1
+        stretchFactor: Double = 1,
+        endCenter: SIMD2<Double>? = nil,
+        endStartTime: TimeInterval? = nil
     ) {
         self.tags = tags
         self.secondarySystems = secondarySystems
@@ -278,6 +291,8 @@ public class VortexSystem: Codable, Equatable, Hashable {
         self.sizeVariation = sizeVariation
         self.sizeMultiplierAtDeath = sizeMultiplierAtDeath
         self.stretchFactor = stretchFactor
+        self.endCenter = endCenter
+        self.endStartTime = endStartTime
 
         if case let .randomRamp(allColors) = colors {
             selectedColorRamp = Int.random(in: 0..<allColors.count)
@@ -320,6 +335,8 @@ public class VortexSystem: Codable, Equatable, Hashable {
         sizeVariation = try container.decode(Double.self, forKey: .sizeVariation)
         sizeMultiplierAtDeath = try container.decode(Double.self, forKey: .sizeMultiplierAtDeath)
         stretchFactor = try container.decode(Double.self, forKey: .stretchFactor)
+        endCenter = try container.decodeIfPresent(SIMD2<Double>.self, forKey: .endCenter)
+        endStartTime = try container.decodeIfPresent(Double.self, forKey: .endStartTime)
     }
 
     /// Support for `Codable` to make it easier to create an editor UI in the future.
@@ -353,6 +370,8 @@ public class VortexSystem: Codable, Equatable, Hashable {
         try container.encode(sizeVariation, forKey: .sizeVariation)
         try container.encode(sizeMultiplierAtDeath, forKey: .sizeMultiplierAtDeath)
         try container.encode(stretchFactor, forKey: .stretchFactor)
+        try container.encode(endCenter, forKey: .endCenter)
+        try container.encode(endStartTime, forKey: .endStartTime)
     }
 
     /// Two particle systems are the same if they they have same identifier.
@@ -397,7 +416,9 @@ public class VortexSystem: Codable, Equatable, Hashable {
             size: size,
             sizeVariation: sizeVariation,
             sizeMultiplierAtDeath: sizeMultiplierAtDeath,
-            stretchFactor: stretchFactor
+            stretchFactor: stretchFactor,
+            endCenter: endCenter,
+            endStartTime: endStartTime
         )
     }
 }

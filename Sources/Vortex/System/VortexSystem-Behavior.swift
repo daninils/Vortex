@@ -65,9 +65,25 @@ extension VortexSystem {
                 }
             }
 
-            // Update particle position
-            particle.position.x += particle.speed.x * delta * drawDivisor
-            particle.position.y += particle.speed.y * delta
+            if let endStartTime, let endCenter, age > endStartTime {
+                let initalEndPosition: SIMD2<Double>
+                if let particleInitalEndPosition = particle.initalEndPosition {
+                    initalEndPosition = particleInitalEndPosition
+                } else {
+                    particle.initalEndPosition = particle.position
+                    initalEndPosition = particle.position
+                }
+
+                let progress = (age - endStartTime) / (particle.lifespan - endStartTime)
+                let endUnitPoint: SIMD2<Double> = [endCenter.x / drawSize.width, endCenter.y / drawSize.height]
+                let gap = endUnitPoint - initalEndPosition
+                let movement = gap * progress
+                particle.position = initalEndPosition + movement
+            } else {
+                // Update particle position
+                particle.position.x += particle.speed.x * delta * drawDivisor
+                particle.position.y += particle.speed.y * delta
+            }
 
             if dampingFactor != 1 {
                 let dampingAmount = dampingFactor * delta / lifespan

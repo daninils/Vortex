@@ -45,5 +45,8 @@ extension VortexSystem {
         /// The current color to use for rendering this particle right now. This is recomputed
         /// every time its system's `update()` method is called.
         var currentColor = Color.white
+
+        /// The location of the particle when first started to transition to the end center.
+        var initalEndPosition: SIMD2<Double>?
     }
 }
